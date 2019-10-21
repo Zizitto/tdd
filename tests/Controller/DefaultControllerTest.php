@@ -2,8 +2,6 @@
 namespace tests\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
-use Symfony\Component\BrowserKit\Cookie;
 
 class DefaultControllerTest extends WebTestCase
 {
