@@ -1,5 +1,5 @@
-##TDD of login process to admin part.
-###Planning
+## TDD of login process to admin part.
+### Planning
 What we need to do?
 We need to have secured page which will show some data and require user authentication:
 
@@ -10,7 +10,7 @@ Let`s split this task to few smaller tasks:
 - Protect it with access policy
 - Add login form
 
-#1. New Project And Setup
+# 1. New Project And Setup
 
 - Install Symfony installer
 
@@ -29,9 +29,9 @@ git init
 git remote add origin git@github.com:zzz/zzz.git
 - (optional) Start New Branch with name "login"
 
-#2. Create homepage
+# 2. Create homepage
 
-###Write test:
+### Write test:
 Create DefaultControllerTest.php inside of "tests/Controller" dirrectory.
 Extend it from WebTestCase class.
 
@@ -56,13 +56,13 @@ Add homepage test function:
 		$this->assertEquals(200, $this->client->getResponse()->getStatusCode());
 	}
 
-###Run test:
+### Run test:
 
 	Failed asserting that 404 matches expected 200.
 	Expected :200
 	Actual   :404
 
-###Fix test:
+### Fix test:
 Add DefaultController with "\" route
 
 	<?php
@@ -94,15 +94,15 @@ Add home.html.twig to templates
 	hello
 	{% endblock %}
 
-###Run test:
+### Run test:
 
 	OK (1 test, 1 assertion)
 
-###Refactoring (not needed)
+### Refactoring (not needed)
 
-#3. Fill Homepage with some content.
+# 3. Fill Homepage with some content.
 
-###Write test:
+### Write test:
 Add test function to DefaultControllerTest.php:
 
 	public function testHomePageContainsSomeContent() {
@@ -110,7 +110,7 @@ Add test function to DefaultControllerTest.php:
 		$this->assertContains('Very Secure data', $this->client->getResponse()->getContent());
 	}
 
-###Run test:
+### Run test:
 
 	Failed asserting that '<!DOCTYPE html>\n
 	<html>\n
@@ -124,7 +124,7 @@ Add test function to DefaultControllerTest.php:
 	</html>\n
 	' contains "Very Secured data".
 
-###Fix test:
+### Fix test:
 Add content to home.html.twig:
 
 	{% extends 'base.html.twig' %}
@@ -133,21 +133,21 @@ Add content to home.html.twig:
 	Very Secured data
 	{% endblock %}
 
-###Run test:
+### Run test:
 
 	OK (1 test, 1 assertion)
 
-###Run all tests
+### Run all tests
 
 	OK (2 tests, 2 assertions)
 
-###Refactoring
+### Refactoring
 assertContains can be replaced by assertSame with crowler get element text
 
 
-#4. Protect it with login process
+# 4. Protect it with login process
 
-###Write test
+### Write test
 Modify testHomePageIsAvailable to have 401 by default
 
 	public function testHomePageIsAvailable() {
@@ -155,23 +155,23 @@ Modify testHomePageIsAvailable to have 401 by default
 		$this->assertEquals(401, $this->client->getResponse()->getStatusCode());
 	}
 
-###Run test:
+### Run test:
 Failed asserting that 200 matches expected 401.
 
-###Fix test:
+### Fix test:
 Add rule to access controll
 
 	- { path: ^/, roles: ROLE_ADMIN }
 
-###Run testHomePageIsAvailable
+### Run testHomePageIsAvailable
 
 	OK (1 test, 1 assertion)
 
-###Run all tests
+### Run all tests
 
 	Tests: 2, Assertions: 2, Failures: 1.
 
-###Fix test 
+### Fix test 
 Add testHomePageIsAvailableWithGoodCredentials test
 
 	public function testHomePageIsAvailableWithGoodCredentials() {
@@ -193,18 +193,18 @@ Add testHomePageIsAvailableWithGoodCredentials test
 		$this->client->getCookieJar()->set($cookie);
 	}
 
-#5. Add login form
-###Write Test
+# 5. Add login form
+### Write Test
 
 	public function testLoginForm() {
 		$this->client->request('GET', '/login');
 		$this->assertEquals(200, $this->client->getResponse()->getStatusCode());
 	}
 
-###Run tests
+### Run tests
 Failed asserting that 404 matches expected 200.
 
-###Fix test
+### Fix test
 Add password encoder and InMemory users
 
 		encoders:
@@ -228,14 +228,14 @@ Generate login form (use Symfony\Component\Security\Core\User\User as User Entit
 
 	bin/console make:auth
 
-###Run testLoginForm
+### Run testLoginForm
 
 	OK (1 test, 1 assertion)
 
-###Run all tests
+### Run all tests
 	Failed testHomePageIsAvailable
 
-###Fix testHomePageIsAvailable 
+### Fix testHomePageIsAvailable 
 Modify testHomePageIsAvailable to have 302 redirect by default
 
 	public function testHomePageIsAvailable() {
@@ -243,9 +243,9 @@ Modify testHomePageIsAvailable to have 302 redirect by default
 		$this->assertEquals(302, $this->client->getResponse()->getStatusCode());
 	}
 
-###Refactoring (Add extra tests)
+### Refactoring (Add extra tests)
 
-####Write success test
+### #Write success test
 
 	public function testLoginFormSubmit() {
 		$this->client->request('POST', '/login', [
@@ -258,7 +258,7 @@ Modify testHomePageIsAvailable to have 302 redirect by default
 		$this->assertEquals('/', $this->client->getResponse()->headers->get('location')); //success we are inside of secured zone
 	}
 
-####Write fail test
+### #Write fail test
 
 	public function testLoginFormSubmitWithWrongPassword() {
 		$this->client->request('POST', '/login', [
@@ -271,7 +271,7 @@ Modify testHomePageIsAvailable to have 302 redirect by default
 		$this->assertEquals('/login', $this->client->getResponse()->headers->get('location')); //fail we still on login page
 	}
 
-####Write login logout flow test
+### #Write login logout flow test
 
 	public function testLoginFormAlreadyAuthorized() {
 		$this->login();
