@@ -12,6 +12,7 @@ class DefaultControllerTest extends WebTestCase
     public function setUp()
     {
         $this->client = static::createClient();
+        $this->client->followRedirects(false);
     }
 
     public function testHomePageIsAvailable() {
@@ -31,23 +32,57 @@ class DefaultControllerTest extends WebTestCase
         $this->assertContains('Very Secured data', $this->client->getResponse()->getContent());
     }
 
+    public function testLoginForm() {
+        $this->client->request('GET', '/login');
+        $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
+    }
+
+    public function testLoginFormAlreadyAuthorized() {
+        $this->login();
+        $this->client->request('GET', '/login');
+        $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
+        $this->assertEquals(null, $this->client->getResponse()->headers->get('location')); //redirect to homepage
+    }
+
+    public function testLoginFormProcess() {
+        $this->logIn();
+
+        $this->client->request('GET', '/');
+        $this->assertEquals(200, $this->client->getResponse()->getStatusCode()); // we are still authenticated
+
+        $this->logOut();
+
+        $this->client->request('GET', '/');
+        $this->assertEquals(302, $this->client->getResponse()->getStatusCode()); // we are no more authenticated
+    }
+
+    public function testLoginFormSubmitWithWrongPassword() {
+        $this->client->request('POST', '/login', [
+            'username' => 'john_admin',
+            'password' => '1',
+            '_csrf_token' => $this->client->getContainer()->get('security.csrf.token_manager')->getToken('authenticate')->getValue(),
+        ]);
+
+        $this->assertEquals(302, $this->client->getResponse()->getStatusCode());
+        $this->assertEquals('/login', $this->client->getResponse()->headers->get('location')); //fail we still on login page
+    }
+
     private function logIn()
     {
-        $session = $this->client->getContainer()->get('session');
+        $this->client->request('POST', '/login', [
+            'username' => 'john_admin',
+            'password' => 'test',
+            '_csrf_token' => $this->client->getContainer()->get('security.csrf.token_manager')->getToken('authenticate')->getValue(),
+        ]);
+        $this->assertEquals(302, $this->client->getResponse()->getStatusCode());
+        $this->assertEquals('/', $this->client->getResponse()->headers->get('location')); //success we are inside of secured zone
+    }
 
-        $firewallName = 'main';
-        // if you don't define multiple connected firewalls, the context defaults to the firewall name
-        // See https://symfony.com/doc/current/reference/configuration/security.html#firewall-context
-        $firewallContext = 'main';
-
-        // you may need to use a different token class depending on your application.
-        // for example, when using Guard authentication you must instantiate PostAuthenticationGuardToken
-        $token = new UsernamePasswordToken('admin', null, $firewallName, ['ROLE_ADMIN']);
-        $session->set('_security_'.$firewallContext, serialize($token));
-        $session->save();
-
-        $cookie = new Cookie($session->getName(), $session->getId());
-        $this->client->getCookieJar()->set($cookie);
+    private function logOut()
+    {
+        $this->client->request('GET', '/logout');
+        $this->assertEquals(302, $this->client->getResponse()->getStatusCode()); // logout
+        $this->assertEquals('http://localhost/', $this->client->getResponse()->headers->get('location')); //redirect to homepage
     }
 
 }
