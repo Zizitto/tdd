@@ -16,7 +16,7 @@ class DefaultControllerTest extends WebTestCase
 
     public function testHomePageIsAvailable() {
         $this->client->request('GET', '/');
-        $this->assertEquals(401, $this->client->getResponse()->getStatusCode());
+        $this->assertEquals(302, $this->client->getResponse()->getStatusCode());
     }
 
     public function testHomePageIsAvailableWithGoodCredentials() {
