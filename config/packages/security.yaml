@@ -1,7 +1,15 @@
 security:
+    encoders:
+        Symfony\Component\Security\Core\User\User: 'auto'
+
     # https://symfony.com/doc/current/security.html#where-do-users-come-from-user-providers
     providers:
-        in_memory: { memory: null }
+        in_memory:
+            memory:
+                users:
+                    john_admin: { password: '$argon2id$v=19$m=65536,t=4,p=1$w7EtYjXVZV/wXDBuogsF1w$vR4MMumgpX4FqWTlMnJJnTfG6+unZSSVhZazMsrOqBc', roles: ['ROLE_ADMIN'] }
+                    jane_admin: { password: '$argon2id$v=19$m=65536,t=4,p=1$kMNjXkDDcYNScHG7W8MA3w$0V6OS2FwryNdLLOOBszAGC9cYt++JCHwJwc9gRfEVzk', roles: ['ROLE_ADMIN', 'ROLE_SUPER_ADMIN'] }
+
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
@@ -18,5 +26,6 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
+     - { path: ^/, roles: ROLE_ADMIN }
+    # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }
