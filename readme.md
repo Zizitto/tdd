@@ -275,7 +275,9 @@ Modify testHomePageIsAvailable to have 302 redirect by default
 
 	public function testLoginFormAlreadyAuthorized() {
 	    $this->login();
+
 	    $this->client->request('GET', '/login');
+
 	    $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
 	    $this->assertEquals(null, $this->client->getResponse()->headers->get('location')); //redirect to homepage
 	}
@@ -310,6 +312,7 @@ Modify testHomePageIsAvailable to have 302 redirect by default
 	        'password' => 'test',
 	        '_csrf_token' => $this->client->getContainer()->get('security.csrf.token_manager')->getToken('authenticate')->getValue(),
 	    ]);
+    
 	    $this->assertEquals(302, $this->client->getResponse()->getStatusCode());
 	    $this->assertEquals('/', $this->client->getResponse()->headers->get('location')); //success, we are inside of secured zone
 	}
@@ -317,6 +320,7 @@ Modify testHomePageIsAvailable to have 302 redirect by default
 	private function logOut()
 	{
 	    $this->client->request('GET', '/logout');
+
 	    $this->assertEquals(302, $this->client->getResponse()->getStatusCode());
 	    $this->assertEquals('http://localhost/', $this->client->getResponse()->headers->get('location')); //redirect to homepage
 	}
