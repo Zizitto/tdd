@@ -41,7 +41,7 @@ Extend it from WebTestCase class.
 
 	class DefaultControllerTest extends WebTestCase
 	{
-		private $client = null;
+	    private $client = null;
 
 	    public function setUp()
 	    {
@@ -52,8 +52,8 @@ Extend it from WebTestCase class.
 Add homepage test function:
 
 	public function testHomePageIsAvailable() {
-		$this->client->request('GET', '/');
-		$this->assertEquals(200, $this->client->getResponse()->getStatusCode());
+	    $this->client->request('GET', '/');
+	    $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
 	}
 
 ### Run test:
@@ -106,8 +106,8 @@ Add home.html.twig to templates
 Add test function to DefaultControllerTest.php:
 
 	public function testHomePageContainsSomeContent() {
-		$this->client->request('GET', '/');
-		$this->assertContains('Very Secure data', $this->client->getResponse()->getContent());
+	    $this->client->request('GET', '/');
+	    $this->assertContains('Very Secure data', $this->client->getResponse()->getContent());
 	}
 
 ### Run test:
@@ -151,8 +151,8 @@ assertContains can be replaced by assertSame with crowler get element text
 Modify testHomePageIsAvailable to have 401 by default
 
 	public function testHomePageIsAvailable() {
-		$this->client->request('GET', '/');
-		$this->assertEquals(401, $this->client->getResponse()->getStatusCode());
+	    $this->client->request('GET', '/');
+	    $this->assertEquals(401, $this->client->getResponse()->getStatusCode());
 	}
 
 ### Run test:
@@ -175,30 +175,30 @@ Add rule to access controll
 Add testHomePageIsAvailableWithGoodCredentials test
 
 	public function testHomePageIsAvailableWithGoodCredentials() {
-		$this->login();
-		$this->client->request('GET', '/');
-		$this->assertEquals(200, $this->client->getResponse()->getStatusCode());
+	    $this->login();
+	    $this->client->request('GET', '/');
+	    $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
 	}
 
 	private function logIn()
 	{
-		$session = $this->client->getContainer()->get('session');
-		$firewallName = 'main';
-		$firewallContext = 'main';
-		$token = new UsernamePasswordToken('admin', null, $firewallName, ['ROLE_ADMIN']);
-		$session->set('_security_'.$firewallContext, serialize($token));
-		$session->save();
+	    $session = $this->client->getContainer()->get('session');
+	    $firewallName = 'main';
+	    $firewallContext = 'main';
+	    $token = new UsernamePasswordToken('admin', null, $firewallName, ['ROLE_ADMIN']);
+	    $session->set('_security_'.$firewallContext, serialize($token));
+	    $session->save();
 
-		$cookie = new Cookie($session->getName(), $session->getId());
-		$this->client->getCookieJar()->set($cookie);
+	    $cookie = new Cookie($session->getName(), $session->getId());
+	    $this->client->getCookieJar()->set($cookie);
 	}
 
 # 5. Add login form
 ### Write Test
 
 	public function testLoginForm() {
-		$this->client->request('GET', '/login');
-		$this->assertEquals(200, $this->client->getResponse()->getStatusCode());
+	    $this->client->request('GET', '/login');
+	    $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
 	}
 
 ### Run tests
@@ -207,7 +207,7 @@ Failed asserting that 404 matches expected 200.
 ### Fix test
 Add password encoder and InMemory users
 
-		encoders:
+	    encoders:
 	        Symfony\Component\Security\Core\User\User: 'auto'
 
 	    # https://symfony.com/doc/current/security.html#where-do-users-come-from-user-providers
@@ -239,8 +239,8 @@ Generate login form (use Symfony\Component\Security\Core\User\User as User Entit
 Modify testHomePageIsAvailable to have 302 redirect by default
 
 	public function testHomePageIsAvailable() {
-		$this->client->request('GET', '/');
-		$this->assertEquals(302, $this->client->getResponse()->getStatusCode());
+	    $this->client->request('GET', '/');
+	    $this->assertEquals(302, $this->client->getResponse()->getStatusCode());
 	}
 
 ### Refactoring (Add extra tests)
@@ -248,75 +248,75 @@ Modify testHomePageIsAvailable to have 302 redirect by default
 ### #Write success test
 
 	public function testLoginFormSubmit() {
-		$this->client->request('POST', '/login', [
-		'username' => 'john_admin',
-		'password' => 'test',
-		'_csrf_token' => $this->client->getContainer()->get('security.csrf.token_manager')->getToken('authenticate')->getValue(),
-		]);
+	    $this->client->request('POST', '/login', [
+	    'username' => 'john_admin',
+	    'password' => 'test',
+	    '_csrf_token' => $this->client->getContainer()->get('security.csrf.token_manager')->getToken('authenticate')->getValue(),
+	    ]);
 
-		$this->assertEquals(302, $this->client->getResponse()->getStatusCode());
-		$this->assertEquals('/', $this->client->getResponse()->headers->get('location')); //success we are inside of secured zone
+	    $this->assertEquals(302, $this->client->getResponse()->getStatusCode());
+	    $this->assertEquals('/', $this->client->getResponse()->headers->get('location')); //success we are inside of secured zone
 	}
 
 ### #Write fail test
 
 	public function testLoginFormSubmitWithWrongPassword() {
-		$this->client->request('POST', '/login', [
-			'username' => 'john_admin',
-			'password' => '1',
-			'_csrf_token' => $this->client->getContainer()->get('security.csrf.token_manager')->getToken('authenticate')->getValue(),
-		]);
+	    $this->client->request('POST', '/login', [
+	        'username' => 'john_admin',
+	        'password' => '1',
+	        '_csrf_token' => $this->client->getContainer()->get('security.csrf.token_manager')->getToken('authenticate')->getValue(),
+	    ]);
 
-		$this->assertEquals(302, $this->client->getResponse()->getStatusCode());
-		$this->assertEquals('/login', $this->client->getResponse()->headers->get('location')); //fail we still on login page
+	    $this->assertEquals(302, $this->client->getResponse()->getStatusCode());
+	    $this->assertEquals('/login', $this->client->getResponse()->headers->get('location')); //fail we still on login page
 	}
 
 ### #Write login logout flow test
 
 	public function testLoginFormAlreadyAuthorized() {
-		$this->login();
-		$this->client->request('GET', '/login');
-		$this->assertEquals(200, $this->client->getResponse()->getStatusCode());
-		$this->assertEquals(null, $this->client->getResponse()->headers->get('location')); //redirect to homepage
+	    $this->login();
+	    $this->client->request('GET', '/login');
+	    $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
+	    $this->assertEquals(null, $this->client->getResponse()->headers->get('location')); //redirect to homepage
 	}
 
 	public function testLoginFormProcess() {
-		$this->logIn();
+	    $this->logIn();
 
-		$this->client->request('GET', '/');
-		$this->assertEquals(200, $this->client->getResponse()->getStatusCode()); // we are still authenticated
+	    $this->client->request('GET', '/');
+	    $this->assertEquals(200, $this->client->getResponse()->getStatusCode()); // we are still authenticated
 
-		$this->logOut();
+	    $this->logOut();
 
-		$this->client->request('GET', '/');
-		$this->assertEquals(302, $this->client->getResponse()->getStatusCode()); // we are no more authenticated
+	    $this->client->request('GET', '/');
+	    $this->assertEquals(302, $this->client->getResponse()->getStatusCode()); // we are no more authenticated
 	}
 
 	public function testLoginFormSubmitWithWrongPassword() {
-		$this->client->request('POST', '/login', [
-			'username' => 'john_admin',
-			'password' => '1',
-			'_csrf_token' => $this->client->getContainer()->get('security.csrf.token_manager')->getToken('authenticate')->getValue(),
-		]);
+	    $this->client->request('POST', '/login', [
+	        'username' => 'john_admin',
+	        'password' => '1',
+	        '_csrf_token' => $this->client->getContainer()->get('security.csrf.token_manager')->getToken('authenticate')->getValue(),
+	    ]);
 
-		$this->assertEquals(302, $this->client->getResponse()->getStatusCode());
-		$this->assertEquals('/login', $this->client->getResponse()->headers->get('location')); //fail, we still on login page
+	    $this->assertEquals(302, $this->client->getResponse()->getStatusCode());
+	    $this->assertEquals('/login', $this->client->getResponse()->headers->get('location')); //fail, we still on login page
 	}
 
 	private function logIn()
 	{
-		$this->client->request('POST', '/login', [
-			'username' => 'john_admin',
-			'password' => 'test',
-			'_csrf_token' => $this->client->getContainer()->get('security.csrf.token_manager')->getToken('authenticate')->getValue(),
-		]);
-		$this->assertEquals(302, $this->client->getResponse()->getStatusCode());
-		$this->assertEquals('/', $this->client->getResponse()->headers->get('location')); //success, we are inside of secured zone
+	    $this->client->request('POST', '/login', [
+	        'username' => 'john_admin',
+	        'password' => 'test',
+	        '_csrf_token' => $this->client->getContainer()->get('security.csrf.token_manager')->getToken('authenticate')->getValue(),
+	    ]);
+	    $this->assertEquals(302, $this->client->getResponse()->getStatusCode());
+	    $this->assertEquals('/', $this->client->getResponse()->headers->get('location')); //success, we are inside of secured zone
 	}
 
 	private function logOut()
 	{
-		$this->client->request('GET', '/logout');
-		$this->assertEquals(302, $this->client->getResponse()->getStatusCode());
-		$this->assertEquals('http://localhost/', $this->client->getResponse()->headers->get('location')); //redirect to homepage
+	    $this->client->request('GET', '/logout');
+	    $this->assertEquals(302, $this->client->getResponse()->getStatusCode());
+	    $this->assertEquals('http://localhost/', $this->client->getResponse()->headers->get('location')); //redirect to homepage
 	}
