@@ -249,9 +249,9 @@ Modify testHomePageIsAvailable to have 302 redirect by default
 
 	public function testLoginFormSubmit() {
 	    $this->client->request('POST', '/login', [
-	    'username' => 'john_admin',
-	    'password' => 'test',
-	    '_csrf_token' => $this->client->getContainer()->get('security.csrf.token_manager')->getToken('authenticate')->getValue(),
+	        'username' => 'john_admin',
+	        'password' => 'test',
+	        '_csrf_token' => $this->client->getContainer()->get('security.csrf.token_manager')->getToken('authenticate')->getValue(),
 	    ]);
 
 	    $this->assertEquals(302, $this->client->getResponse()->getStatusCode());
