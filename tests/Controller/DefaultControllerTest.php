@@ -47,45 +47,44 @@ class DefaultControllerTest extends WebTestCase
 
         $this->client->click($link);
 
-//        $this->assertContains('Profile page', $this->client->getResponse()->getContent());
         $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
     }
 
-//    public function testLoginForm() {
-//        $this->client->request('GET', '/login');
-//        $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
-//    }
-//
-//    public function testLoginFormAlreadyAuthorized() {
-//        $this->login();
-//        $this->client->request('GET', '/login');
-//        $this->assertEquals(302, $this->client->getResponse()->getStatusCode());
-//        $this->assertEquals('/', $this->client->getResponse()->headers->get('location')); //redirect to homepage
-//    }
-//
-//    public function testLoginFormProcess() {
-//        $this->logIn();
-//
-//        $this->client->request('GET', '/');
-//        $this->assertEquals(200, $this->client->getResponse()->getStatusCode()); // we are still authenticated
-//
-//        $this->logOut();
-//
-//        $this->client->request('GET', '/');
-//        $this->assertEquals(302, $this->client->getResponse()->getStatusCode()); // we are no more authenticated
-//    }
-//
-//    public function testLoginFormSubmitWithWrongPassword() {
-//        $this->client->request('POST', '/login', [
-//            'username' => 'john_admin',
-//            'password' => '1',
-//            '_csrf_token' => $this->client->getContainer()->get('security.csrf.token_manager')->getToken('authenticate')->getValue(),
-//        ]);
-//
-//        $this->assertEquals(302, $this->client->getResponse()->getStatusCode());
-//        $this->assertEquals('/login', $this->client->getResponse()->headers->get('location')); //fail we still on login page
-//    }
-//
+    public function testLoginForm() {
+        $this->client->request('GET', '/login');
+        $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
+    }
+
+    public function testLoginFormAlreadyAuthorized() {
+        $this->login();
+        $this->client->request('GET', '/login');
+        $this->assertEquals(302, $this->client->getResponse()->getStatusCode());
+        $this->assertEquals('/', $this->client->getResponse()->headers->get('location')); //redirect to homepage
+    }
+
+    public function testLoginFormProcess() {
+        $this->logIn();
+
+        $this->client->request('GET', '/');
+        $this->assertEquals(200, $this->client->getResponse()->getStatusCode()); // we are still authenticated
+
+        $this->logOut();
+
+        $this->client->request('GET', '/');
+        $this->assertEquals(302, $this->client->getResponse()->getStatusCode()); // we are no more authenticated
+    }
+
+    public function testLoginFormSubmitWithWrongPassword() {
+        $this->client->request('POST', '/login', [
+            'username' => 'john_admin',
+            'password' => '1',
+            '_csrf_token' => $this->client->getContainer()->get('security.csrf.token_manager')->getToken('authenticate')->getValue(),
+        ]);
+
+        $this->assertEquals(302, $this->client->getResponse()->getStatusCode());
+        $this->assertEquals('/login', $this->client->getResponse()->headers->get('location')); //fail we still on login page
+    }
+
     private function logIn()
     {
         $this->client->request('POST', '/login', [
