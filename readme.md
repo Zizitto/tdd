@@ -140,9 +140,181 @@ Add content to home.html.twig:
 ### Run all tests
 
 	OK (2 tests, 2 assertions)
+	
+Add test function to DefaultControllerTest.php:
 
+	public function testHomePageContainsProfileLink() {
+        $this->login();
+        $crawler = $this->client->request('GET', '/');
+    
+        $this->assertEquals(1, $crawler->filter('a')->count());
+    }
+    
+### Run test:
+    1) tests\Controller\DefaultControllerTest::testHomePageContainsProfileLink
+    Failed asserting that 0 matches expected 1.
+### Fix test:
+Add link to home.html.twig
+
+    {% extends 'base.html.twig' %}
+    
+    {% block body %}
+        Very Secured data
+        <a href="{{ path('profile') }}">Profile</a>
+    {% endblock %}
+
+### Run tests
+    OK (4 tests, 10 assertions)
+    
+Add test function to DefaultControllerTest.php:
+
+	public function testHomePageClickProfileLink() {
+        $this->login();
+        $crawler = $this->client->request('GET', '/');
+        $link = $crawler->filter('a')->link();
+    
+        $this->assertNotEmpty($link);
+        $this->client->click($link);
+    
+        $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
+    }
+
+### Run test:
+    tests\Controller\DefaultControllerTest::testHomePageClickProfileLink
+    Failed asserting that 404 matches expected 200.
+    
+### Fix test:
+Add profile controller
+    
+    <?php
+    
+    namespace App\Controller;
+    
+    use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+    use Symfony\Component\Form\Extension\Core\Type\SubmitType;
+    use Symfony\Component\Form\Extension\Core\Type\TextType;
+    use Symfony\Component\HttpFoundation\Request;
+    use Symfony\Component\HttpFoundation\Response;
+    use Symfony\Component\Routing\Annotation\Route;
+    use Symfony\Component\Validator\Constraints\Length;
+    use Symfony\Component\Validator\Constraints\NotBlank;
+    
+    class ProfileController extends AbstractController
+    {
+        /**
+         * @Route("/profile", name="profile", methods={"GET", "POST"})
+         * @return Response
+         */
+        public function profileAction(Request $request)
+        {
+            $form = $this->createFormBuilder()
+                ->add('username', TextType::class, [
+                ])
+                ->add('submit', SubmitType::class)
+                ->getForm();
+    
+            $form->handleRequest($request);
+    
+            if ($form->isSubmitted() && $form->isValid()) {
+                return $this->redirectToRoute('home');
+            }
+    
+            return $this->render('profile.html.twig', [
+                    'form' => $form->createView()
+                ]
+            );
+        }
+    }
+
+### Run test:
+    OK (5 tests, 14 assertions)
+    
+Add test function to ProfileControllerTest.php:
+
+	public function testProfilePageIsFormAvailable() {
+        $this->login();
+        $crawler = $this->client->request('GET', '/profile');
+    
+        $this->assertContains('Profile page', $this->client->getResponse()->getContent());
+    
+        $form = $crawler->selectButton('Save')->form();
+        $this->assertNotEmpty($form);
+    }
+    
+### Run test
+
+    tests\Controller\ProfileControllerTest::testProfilePageIsFormAvailable
+    InvalidArgumentException: The current node list is empty.
+    
+### Fix test
+    
+    {% extends 'base.html.twig' %}
+    
+    {% block body %}
+        Profile page
+        {{ form(form) }}
+    {% endblock %}
+    
+### Run tests
+
+    OK (6 tests, 18 assertions)
+    
+Add tests for validation length username and form's submitting
+    
+    public function testProfilePageSubmitValidForm() {
+        $this->login();
+        $crawler = $this->client->request('GET', '/profile');
+    
+        $form = $crawler->selectButton('Save')->form();
+    
+        $form['form[username]'] = 'test1';
+        $this->assertNotEmpty($form);
+    
+        $this->client->submit($form);
+    
+        $this->assertEquals(302, $this->client->getResponse()->getStatusCode());
+        $this->assertContains('?username=test1', $this->client->getResponse()->headers->get('Location'));
+    }
+    
+    public function testProfilePageSubmitNotValidForm() {
+        $this->login();
+        $crawler = $this->client->request('GET', '/profile');
+    
+        $form = $crawler->selectButton('Save')->form();
+    
+        $form['form[username]'] = 't';
+        $this->assertNotEmpty($form);
+    
+        $this->client->submit($form);
+    
+        $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
+        $this->assertContains('Profile page', $this->client->getResponse()->getContent());
+    }
+    
+### Run test
+
+    tests\Controller\ProfileControllerTest::testProfilePageSubmitNotValidForm
+    Failed asserting that 302 matches expected 200.
+
+### Fix test 
+
+Add constraint to profile form
+
+    $form = $this->createFormBuilder()
+        ->add('username', TextType::class, [
+            'constraints' => [
+                new NotBlank(), new Length(['max' => 6, 'min' => 2])
+            ]
+        ])
+        ->add('submit', SubmitType::class, ['label' => 'Save'])
+        ->getForm();
+        
+### Run test
+
+    OK (8 tests, 28 assertions)
+    
 ### Refactoring
-assertContains can be replaced by assertSame with crowler get element text
+assertContains can be replaced by assertSame with crawler get element text
 
 
 # 4. Protect it with login process
