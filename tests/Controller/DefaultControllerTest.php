@@ -30,6 +30,26 @@ class DefaultControllerTest extends WebTestCase
         $this->assertContains('Very Secured data', $this->client->getResponse()->getContent());
     }
 
+    public function testHomePageContainsProfileLink() {
+        $this->login();
+        $crawler = $this->client->request('GET', '/');
+
+        $this->assertEquals(1, $crawler->filter('a')->count());
+    }
+
+    public function testHomePageClickProfileLink() {
+        $this->login();
+        $crawler = $this->client->request('GET', '/');
+
+        $link = $crawler->filter('a')->link();
+
+        $this->assertNotEmpty($link);
+
+        $this->client->click($link);
+
+        $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
+    }
+
     public function testLoginForm() {
         $this->client->request('GET', '/login');
         $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
@@ -38,8 +58,8 @@ class DefaultControllerTest extends WebTestCase
     public function testLoginFormAlreadyAuthorized() {
         $this->login();
         $this->client->request('GET', '/login');
-        $this->assertEquals(200, $this->client->getResponse()->getStatusCode());
-        $this->assertEquals(null, $this->client->getResponse()->headers->get('location')); //redirect to homepage
+        $this->assertEquals(302, $this->client->getResponse()->getStatusCode());
+        $this->assertEquals('/', $this->client->getResponse()->headers->get('location')); //redirect to homepage
     }
 
     public function testLoginFormProcess() {
@@ -82,5 +102,4 @@ class DefaultControllerTest extends WebTestCase
         $this->assertEquals(302, $this->client->getResponse()->getStatusCode()); // logout
         $this->assertEquals('http://localhost/', $this->client->getResponse()->headers->get('location')); //redirect to homepage
     }
-
 }
