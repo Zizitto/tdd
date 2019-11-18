@@ -281,7 +281,7 @@ Modify testHomePageIsAvailable to have 302 redirect by default
 	}
 
 
-# 3. Fill Homepage with some content.
+# 5. Fill Homepage with some content.
 
 ### Write test:
 Add test function to DefaultControllerTest.php:
