@@ -13,16 +13,18 @@ Let`s split this task to few smaller tasks:
 # 1. New Project And Setup
 
 - Install Symfony installer
-
 	- curl -sS https://get.symfony.com/cli/installer | bash
 	- mv ~/.symfony/bin/symfony /usr/local/bin/symfony
 
 - Create project
-
 	- symfony new tdd --full
 
 - Open Project with PHPStorm
 - Setup PHPStorm PHP and PHPUnit Configuration
+    - Add PhpUnit configuration
+        - change configuration file to use phpunit.xml.dist
+    - PhpUnit Preferences (PhpStorm setting)
+        - use bin/phpunit as phar
 
 - (optional) Init git repository
 git init
@@ -280,8 +282,188 @@ Modify testHomePageIsAvailable to have 302 redirect by default
 	    $this->assertEquals('http://localhost/', $this->client->getResponse()->headers->get('location')); //redirect to homepage
 	}
 
-
 # 5. Fill Homepage with some content.
+
+### Write test:
+Add new test file DefaultControllerServiceTest.php:
+
+    <?php
+        namespace tests\Service;
+        
+        use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+        
+        class UserRegistrationServiceTest extends WebTestCase
+        {
+            private $client = null;
+        
+            public function setUp()
+            {
+                $this->client = static::createClient();
+                $this->client->followRedirects(false);
+            }
+            
+            ...
+        }
+Add test function to DefaultControllerServiceTest.php:
+
+    
+    public function testState1() {
+        $userRegistrationService = $this->client->getContainer()->get(UserRegistrationService::class);
+
+        $user = new User('test', 'test', ["ROLE_USER"]);
+        $this->assertSame(1, $userRegistrationService->getState($user));
+    }
+
+### Run test:
+    
+    UserRegistrationService not found
+    
+### Fix test
+    
+- Add UserRegistrationService.php to Service directory
+
+
+    <?php
+    
+    namespace App\Service;
+    
+    
+    use Symfony\Component\Security\Core\User\User;
+    
+    class UserRegistrationService
+    {
+        
+    }
+    
+    
+- Declare service in config\packages\test\services.yml
+
+    services:
+        # default configuration for services in *this* file
+        _defaults:
+            autowire: true      # Automatically injects dependencies in your services.
+            autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+        
+        userRegistrationServicePublicAlias:
+            class: App\Service\UserRegistrationService
+            public: true
+
+- Add Method to service which returns "1"
+
+
+    public function getState(User $user) {
+        return 1;
+    }
+
+### Run test:
+    
+    tests passed
+    
+### Add 2 more states tests
+
+    
+    public function testState2() {
+        $userRegistrationService = $this->client->getContainer()->get(UserRegistrationService::class);
+
+        $user = new User('test', 'password');
+        $this->assertSame(2, $userRegistrationService->getState($user));
+    }
+
+    public function testState3() {
+        $userRegistrationService = $this->client->getContainer()->get(UserRegistrationService::class);
+
+        $user = new User('test', 'password', ["ROLE_USER"]);
+        $this->assertSame(3, $userRegistrationService->getState($user));
+    } 
+    
+ ### Run tests:
+     
+     testState2 and testState3 not passed
+     
+ ### Fix tests 
+ 
+    public function getState(User $user) {
+        $state = 3;
+
+        if ($user->getRoles() == []) {
+            $state = 2;
+        }
+
+        if ($user->getPassword() == null || $user->getPassword() == '') {
+            $state = 1;
+        }
+
+        return $state;
+    }
+
+ ### Run tests:
+     
+     all tests passed
+     
+ ### Refactor tests
+ 
+ Client is too big to save. Let`s try to avoid this and save only tested service
+    
+    class UserRegistrationServiceTest extends WebTestCase
+    {
+        private $service = null;
+    
+        public function setUp()
+        {
+            self::bootKernel();
+            $this->service = self::$container->get('userRegistrationServicePublicAlias');
+        }
+    
+        public function testState1() {
+            $user = new User('test', '');
+            $this->assertSame(1, $this->service->getState($user));
+        }
+    
+        public function testState2() {
+            $user = new User('test', 'password');
+            $this->assertSame(2, $this->service->getState($user));
+        }
+    
+        public function testState3() {
+            $user = new User('test', 'password', ["ROLE_USER"]);
+            $this->assertSame(3, $this->service->getState($user));
+        }
+    }
+
+  ### Run tests
+  
+    tests passed
+    
+  ### Analyze tests performance
+  
+    https://monosnap.com/file/uD4f9IUi9FmCAC75yP1kf9gj8dfoZf
+  
+  ### Use our new service
+  
+  Change home controller action
+  
+      /**
+       * Homepage
+       *
+       * @Route("/", name="home", methods={"GET"})
+       * @param UserRegistrationService $registrationService
+       * @return Response
+       */
+      public function homeAction(UserRegistrationService $registrationService) {
+          return $this->render('home.html.twig', [
+              'rating' => $registrationService->getState($this->getUser())
+          ]);
+      }
+      
+  Change template
+  
+  
+      {% block body %}
+          Very Secured data
+          User rating: {{ rating }}
+      {% endblock %}
+
+# 6. Fill Homepage with some content.
 
 ### Write test:
 Add test function to DefaultControllerTest.php:
@@ -496,4 +678,3 @@ Add constraint to profile form
     
 ### Refactoring
 assertContains can be replaced by assertSame with crawler get element text
-
